@@ -109,11 +109,11 @@ argv.hidden = useCfg && cfgOpt.hidden && cfgOpt.hidden == true ? true : argv.hid
 argv.d      = useCfg && cfgOpt.comment ? cfgOpt.comment.toString()+argv.d : argv.d;
 argv.d      = argv.d.replace(/\\n/g,'\n');
 
-argv.atkey     = useCfg && cfgOpt.atkey ?  cfgOpt.atkey.toString() : argv.atkey;
-argv.ntkey     = useCfg && cfgOpt.ntkey && cfgOpt.ntkey.indexOf(',') > -1 ? cfgOpt.ntkey.toString().split(',') : argv.ntkey;
-argv.ttkey     = useCfg && cfgOpt.ttkey ?  cfgOpt.ttkey.toString() : argv.ttkey;
-argv.ptkey     = useCfg && cfgOpt.ptkey ?  cfgOpt.ptkey.toString() : argv.ptkey;
-argv.web       = useCfg && cfgOpt.web   ?  cfgOpt.web.toString()   : argv.web;
+argv.atkey  = useCfg && cfgOpt.atkey  ?  cfgOpt.atkey.toString() : argv.atkey;
+argv.ntkey  = useCfg && cfgOpt.ntkey  && cfgOpt.ntkey.indexOf(',') > -1 ? cfgOpt.ntkey.toString().split(',') : argv.ntkey;
+argv.ttkey  = useCfg && cfgOpt.ttkey  ?  cfgOpt.ttkey.toString() : argv.ttkey;
+argv.ptkey  = useCfg && cfgOpt.ptkey  ?  cfgOpt.ptkey.toString() : argv.ptkey;
+argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web.toString()   : argv.web;
 
 // help
 if(argv.h){
@@ -124,9 +124,10 @@ if(argv.h){
 async function doUpload(){
 	await postToAnidex();
 	if(!argv.debug){
-		// await postToNyaa();
-		// await postToPantsu();
+		await postToNyaa();
+		await postToPantsu();
 	}
+	console.log();
 }
 
 // start
@@ -157,7 +158,7 @@ async function postToAnidex(){
 	let postDx = await doReq('post',uploadOptions);
 	if(postDx.res && statCodeCheck(postDx.res,200)){
 		if(argv.debug){
-			console.log('[AniDex]',postDx.res.body.replace(/\t/g,'[AniDex] '));
+			console.log('[AniDex]',postDx.res.body.replace(/\r\n\t$/,'').replace(/\t/g,'[AniDex] '));
 		}
 		else if(postDx.res.body.match(/Error/)){
 			console.log('[AniDex]',postDx.res.body);
@@ -168,25 +169,84 @@ async function postToAnidex(){
 		}
 	}
 	else if(postDx.res){
-		console.log('[AniDex] Can\'t upload to Anidex! Skip upload...');
-		console.log('[AniDex]',postDx.res.statusCode,postDx.res.body);
+		console.log('[AniDex]',postDx.res.statusCode);
 		return;
 	}
 	else if(postDx.err){
-		console.log('[AniDex] Can\'t upload to Anidex! Skip upload...');
 		console.log('[AniDex] Error code: ',postDx.err.code);
 		return;
 	}
 	else{
-		console.log('[AniDex] Can\'t upload to Anidex! Skip upload...');
-		console.log('[AniDex] Unknown error.');
+		console.log('[AniDex] Unknown error');
 	}
 }
 
 // nyaaV2 upload
 // https://github.com/nyaadevs/nyaa/blob/master/utils/api_uploader_v2.py
 async function postToNyaa(){
-	
+	if(!convertCatToNyaa()){
+		return;
+	}
+	let uploadOptions = {
+		url: (argv.hentai ? nsUrl : nnUrl),
+		auth: {
+			user: argv.ntkey[0],
+			pass: argv.ntkey[1]
+		},
+		formData: {
+			torrent_data: JSON.stringify({
+				category: convertCatToNyaa(),
+				information: argv.web,
+				description: bb2md(argv.d),
+				anonymous: false,
+				hidden: argv.hidden,
+				complete: argv.batch,
+				remake: argv.reenc,
+				trusted: true
+			}),
+			torrent: fs.createReadStream(argv.f)
+		}
+	};
+	let postNt = await doReq('post',uploadOptions);
+	if(statCodeCheck(postNt.res,200) || statCodeCheck(postNt.res,400)){
+		let res = JSON.parse(postNt.res.body);
+		if(res.url){
+			console.log('[NyaaV2] Torrent successfully uploaded!');
+			console.log('[NyaaV2]',res.url);
+			if(!argv.hidden){
+				await postToTT(res.url);
+			}
+		}
+		else if(res.errors && res.errors.torrent && res.errors.torrent.join(' / ').match(/That torrent already exists/)){
+			console.log('[NyaaV2]',res.errors.torrent.join('\r\n[NyaaV2] '));
+		}
+		else if(res.errors && res.errors.torrent){
+			console.log('[NyaaV2]',res.errors.torrent.join('\r\n[NyaaV2] '));
+		}
+		else{
+			console.log('[NyaaV2] Unknown error.');
+		}
+	}
+	else if(postNt.res){
+		console.log('[NyaaV2]',postNt.res.statusCode);
+	}
+	else if(postNt.err){
+		console.log('[NyaaV2] Error code: ',postNt.err.code);
+	}
+	else{
+		console.log('[NyaaV2] Unknown error');
+	}
+}
+
+
+async function postToTT(t_url){
+	// fix comment
+	let TTcom = argv.d.replace(/\n$/,'').trim();
+	do {
+		TTcom = TTcom.replace(/\n\n/g,'\n');
+	} while (TTcom.match(/\n\n/));
+	TTcom = TTcom.replace(/\n/g,' / ').replace(/\[(\w+)[^w]*?](.*?)\[\/\1]/g,'$2');
+	console.log('[TokyoTosho] In development!');
 }
 
 // pantsu upload
@@ -256,7 +316,105 @@ function convertCatToAnidex(){
 			return false;
 	}
 }
+function convertCatToNyaa(){
+	if(!argv.hentai){
+		switch (argv.cat){
+			case '1_1':
+				return '1_4';
+				break;
+			case '1_2':
+			case '1_3':
+				return argv.lang == 1 ? '1_2' : '1_3';
+				break;
+			case '2_1':
+				return '3_3';
+				break;
+			case '2_2':
+				return argv.lang == 1 ? '3_1' : '3_2';
+				break;
+			case '3_1':
+				return '4_4';
+				break;
+			case '3_2':
+				return argv.lang == 1 ? '4_1' : '4_3';
+				break;
+			case '3_3':
+				return argv.lang == 1 ? '4_1' : '4_3';
+				break;
+			case '3_4':
+				return '4_2';
+				break;
+			case '4_1':
+				return '3_3';
+				break;
+			case '4_2':
+				return argv.lang == 1 ? '3_1' : '3_2';
+				break;
+			case '5_1':
+				return '2_1';
+				break;
+			case '5_2':
+				return '2_2';
+				break;
+			case '6_1':
+				return '6_1';
+				break;
+			case '6_2':
+				return '6_2';
+				break;
+			case '7_1':
+				return '5_1';
+				break;
+			case '7_2':
+				return '5_2';
+				break;
+			default:
+				errCat('NyaaV2');
+				return false;
+		}
+	}
+	else{
+		switch (argv.cat){
+			case '1_1':
+			case '1_2':
+			case '1_3':
+			case '1_4':
+				return '1_1';
+				break;
+			case '2_1':
+			case '2_2':
+				return '1_4';
+				break;
+			case '3_1':
+			case '3_2':
+			case '3_3':
+			case '3_4':
+			case '8_1':
+				return '2_2';
+				break;
+			case '4_1':
+			case '4_2':
+				return '1_2';
+				break;
+			case '6_1':
+			case '6_2':
+				return '1_3';
+				break;
+			case '7_1':
+				return '1_5';
+				break;
+			case '7_2':
+				return '2_1';
+				break;
+			case '5_1':
+			case '5_2':
+			default:
+				errCat('NyaaV2');
+				return false;
+		}
+	}
+}
 // error cat 
 function errCat(service){
-	console.log('['+service+'] Unknown category! Skip upload...');
+	console.log('['+service+'] Error: unknown category!');
 }

@@ -8,7 +8,7 @@ Script Categories:
 3_1: LA - Raw     | 7_1: Pictures - Graphics
 3_2: LA - Sub     | 7_2: Pictures - Photos
 3_3: LA - Dub     | 8_1: JAV
-3_4: LA - PV/Idol | 9_1: (Reserved)
+3_4: LA - Idol/PV | 9_1: (Reserved)
 [Batch/Hentai/Reencode/Hidden]
 
 Anidex Category IDs (type)
