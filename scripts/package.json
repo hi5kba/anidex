@@ -1,0 +1,33 @@
+{
+	"name": "anidex",
+	"version": "0.8.0",
+	"description": "Upload torrent to anime trackers.",
+	"keywords": [
+		"upload",
+		"uploader",
+		"anime",
+		"anidex",
+		"nyaa",
+		"tokyotosho",
+		"tracker",
+		"trackers",
+		"torrent",
+		"utility"
+	],
+	"author": "Seiya Loveless",
+	"homepage": "https://github.com/seiya-dev/anidex",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/seiya-dev/anidex.git"
+	},
+	"bugs": {
+		"url": "https://github.com/seiya-dev/anidex/issues"
+	},
+	"license": "MIT",
+	"main": "anidex.js",
+	"dependencies": {
+		"bbcode-to-markdown": "^1.0.1",
+		"request": "^2.83.0",
+		"yargs": "^9.0.1"
+	}
+}

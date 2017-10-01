@@ -1,0 +1,4 @@
+/apidocs/*
+/config/seiya.json
+/scripts/node_modules/*
+package-lock.json

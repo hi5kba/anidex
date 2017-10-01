@@ -1,0 +1,105 @@
+Script Categories:
+1_1: Anime - Raw  | 4_1: LN - Raw
+1_2: Anime - Sub  | 4_2: LN - TLed
+1_3: Anime - Dub  | 5_1: Audio - Lossless
+1_4: Anime - AMV  | 5_2: Audio - Lossy
+2_1: Manga - Raw  | 6_1: Software - Applications
+2_2: Manga - TLed | 6_2: Software - Games
+3_1: LA - Raw     | 7_1: Pictures - Graphics
+3_2: LA - Sub     | 7_2: Pictures - Photos
+3_3: LA - Dub     | 8_1: JAV
+3_4: LA - PV/Idol | 9_1: (Reserved)
+[Batch/Hentai/Reencode/Hidden]
+
+Anidex Category IDs (type)
+1: Anime - Sub  |  9: ♫ - Lossy
+2: Anime - Raw  | 10: ♫ - Lossless
+3: Anime - Dub  | 11: ♫ - Video
+4: LA - Sub     | 12: Games
+5: LA - Raw     | 13: Applications
+6: Light Novel  | 14: Pictures
+7: Manga - TLed | 15: Adult Video
+8: Manga - Raw  | 16: Other
+[Batch/Hentai/Re-encode/Hidden]
+
+Nyaa(.si) 2.0 Category IDs (type)
+1_1: Anime - AMV          | 4_1: Live Action - Eng
+1_2: Anime - Eng          | 4_2: Live Action - Idol/PV
+1_3: Anime - Non-Eng      | 4_3: Live Action - Non-Eng
+1_4: Anime - Raw          | 4_4: Live Action - Raw
+2_1: Audio - Lossless     | 5_1: Pictures - Graphics
+2_2: Audio - Lossy        | 5_2: Pictures - Photos
+3_1: Literature - Eng     | 6_1: Software - Applications
+3_2: Literature - Non-Eng | 6_2: Software - Games
+3_3: Literature - Raw     |
+[Hidden/Remake/Complete/Anonymous]
+
+Nyaa(.si) Sukibei Category IDs (type)
+1_1: Art - Anime
+1_2: Art - Doujinshi
+1_3: Art - Games
+1_4: Art - Manga
+1_5: Art - Pictures
+2_1: Real Life - Photobooks / Pictures
+2_2: Real Life - Videos
+[Hidden/Remake/Complete/Anonymous]
+
+PantsuNyaa Category IDs (type)
+3_  : Anime                               | 5_  : Live Action
+3_12: Anime - Anime Music Video           | 5_9 : Live Action - English-translated
+3_5 : Anime - English-translated          | 5_10: Live Action - Idol/Promotional Video
+3_13: Anime - Non-English-translated      | 5_18: Live Action - Non-English-translated
+3_6 : Anime - Raw                         | 5_11: Live Action - Raw
+2_  : Audio                               | 6_  : Pictures
+2_3 : Audio - Lossless                    | 6_15: Pictures - Graphics
+2_4 : Audio - Lossy                       | 6_16: Pictures - Photos
+4_  : Literature                          | 1_  : Software
+4_7 : Literature - English-translated     | 1_1 : Software - Applications
+4_8 : Literature - Raw                    | 1_2 : Software - Games
+4_14: Literature - Non-English-translated | 
+[Remake]
+
+PantsuSukebei Category IDs (type)
+1_ : Art
+1_1: Art - Anime
+1_2: Art - Doujinshi
+1_3: Art - Games
+1_4: Art - Manga
+1_5: art_pictures
+2_ : Real Life
+2_1: Real Life - Photobooks / Pictures
+2_2: Real Life - Videos
+[Remake]
+
+TokyoTosho Category IDs (type)
+1 : Anime       |  4: Hentai
+10: Non-Eng     | 12: Hentai (Anime)
+3 : Manga       | 13: Hentai (Manga)
+8 : Drama       | 14: Hentai (Game)
+2 : Music       | 11: Batch
+9 : Music Video | 15: JAV
+7 : Raws        |  5: Other
+
+Languages (Same as anidex):
+19: Arabic               |  8: German              | 17: Portuguese (Portugal)
+22: Bengali              | 13: Greek               | 23: Romanian
+14: Bulgarian            |  9: Hungarian           |  7: Russian
+21: Chinese (Simplified) | 27: Indonesian          |  4: Serbo-Croatian
+24: Czech                |  6: Italian             | 29: Spanish (LATAM)
+20: Danish               |  2: Japanese            | 15: Spanish (Spain)
+ 5: Dutch                | 28: Korean              | 18: Swedish
+ 1: English              | 25: Mongolian           | 26: Turkish
+11: Finnish              |  3: Polish              | 12: Vietnamese
+10: French               | 16: Portuguese (Brazil) | 
+
+Languages (NyaaPanstu):
+ca Catalan                  | ko Korean
+de German                   | nb Norwegian Bokmål
+en English                  | nl Dutch
+es Spanish, Mexican Spanish | pt Portuguese
+fr French                   | ro Romanian
+hu Hungarian                | ru Russian
+id Indonesian               | sv Swedish
+is Icelandic                | th Thai
+it Italian                  | zh Chinese
+ja Japanese                 | zh-Hant Traditional Chinese
