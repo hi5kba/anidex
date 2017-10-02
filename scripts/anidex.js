@@ -479,7 +479,6 @@ async function postToPantsu(){
 			remake: argv.reenc.toString()
 		}
 	}
-	console.log(uploadOptions);
 	let postPt = await doReq('post',uploadOptions);
 	if(statCodeCheck(postPt.res,200) || statCodeCheck(postPt.res,400)){
 		let res = JSON.parse(postPt.res.body);
