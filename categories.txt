@@ -45,28 +45,23 @@ Nyaa(.si) Sukibei Category IDs (type)
 [Hidden/Remake/Complete/Anonymous]
 
 PantsuNyaa Category IDs (type)
-3_  : Anime                               | 5_  : Live Action
-3_12: Anime - Anime Music Video           | 5_9 : Live Action - English-translated
-3_5 : Anime - English-translated          | 5_10: Live Action - Idol/Promotional Video
-3_13: Anime - Non-English-translated      | 5_18: Live Action - Non-English-translated
-3_6 : Anime - Raw                         | 5_11: Live Action - Raw
-2_  : Audio                               | 6_  : Pictures
-2_3 : Audio - Lossless                    | 6_15: Pictures - Graphics
-2_4 : Audio - Lossy                       | 6_16: Pictures - Photos
-4_  : Literature                          | 1_  : Software
-4_7 : Literature - English-translated     | 1_1 : Software - Applications
-4_8 : Literature - Raw                    | 1_2 : Software - Games
-4_14: Literature - Non-English-translated | 
+3_12: Anime - AMV          | 5_9 : Live Action - Eng
+3_5 : Anime - Eng          | 5_10: Live Action - Idol/PV
+3_13: Anime - Non-Eng      | 5_18: Live Action - Non-Eng
+3_6 : Anime - Raw          | 5_11: Live Action - Raw
+2_3 : Audio - Lossless     | 6_15: Pictures - Graphics
+2_4 : Audio - Lossy        | 6_16: Pictures - Photos
+4_7 : Literature - Eng     | 1_1 : Software - Applications
+4_14: Literature - Non-Eng | 1_2 : Software - Games
+4_8 : Literature - Raw     |
 [Remake]
 
 PantsuSukebei Category IDs (type)
-1_ : Art
 1_1: Art - Anime
 1_2: Art - Doujinshi
 1_3: Art - Games
 1_4: Art - Manga
-1_5: art_pictures
-2_ : Real Life
+1_5: Art - Pictures
 2_1: Real Life - Photobooks / Pictures
 2_2: Real Life - Videos
 [Remake]

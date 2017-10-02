@@ -150,7 +150,7 @@ function convertCatToAnidex(){
 const cat2nyaa = {
 	nn: {
 		default: {
-			'1_1': '1_4', '1_2': '1_3', '1_3': '1_3',
+			'1_1': '1_4', '1_2': '1_3', '1_3': '1_3', '1_4': '1_1',
 			'2_1': '3_3', '2_2': '3_2',
 			'3_1': '4_4', '3_2': '4_3', '3_3': '4_3', '3_4': '4_2',
 			'4_1': '3_3', '4_2': '3_2',
@@ -187,16 +187,17 @@ function convertCatToNyaa(){
 	}
 	return c;
 }
+// cat tokyotosho
 const cat2tt = {
 	tn: {
 		default: {
 			'1_1': 7, '1_2': 10, '1_3': 10, '1_4': 9,
 			'2_1': 3, '2_2': 3,
-			'3_1': 5, '3_2': 5, '3_3': 5, '3_4': 5,
+			'3_1': 5, '3_2': 5,  '3_3': 5,  '3_4': 5,
 			'4_1': 5, '4_2': 5,
 			'5_1': 2, '5_2': 2,
 			'6_1': 5, '6_2': 5,
-			'7_1': 5, '7_2': 5,
+			'7_1': 5, '7_2': 5
 		},
 		1: {
 			'1_2': 1, '1_3': 1
@@ -226,6 +227,47 @@ function convertCatToTT(){
 	}
 	return c;
 }
+// cat nyaapantsu
+const cat2pantsu = {
+	pn: {
+		default: {
+			'1_1': '3_6',  '1_2': '3_13', '1_3': '3_13', '1_4': '3_12',
+			'2_1': '4_8',  '2_2': '4_14',
+			'3_1': '5_11', '3_2': '5_18', '3_3': '5_18', '3_4': '5_10',
+			'4_1': '4_8',  '4_2': '4_14',
+			'5_1': '2_3',  '5_2': '2_4',
+			'6_1': '1_1',  '6_2': '1_2',
+			'7_1': '6_15', '7_2': '6_16'
+		},
+		1: {
+			'1_2': '3_5', '1_3': '3_5',
+			'2_2': '4_7',
+			'3_2': '5_9', '3_3': '5_9',
+			'4_2': '4_7'
+		}
+	},
+	ps: {
+		default: {
+			'1_1': '1_1', '1_2': '1_1', '1_3': '1_1', '1_4': '1_1',
+			'2_1': '1_4', '2_2': '1_4',
+			'3_1': '2_2', '3_2': '2_2', '3_3': '2_2', '3_4': '2_2',
+			'4_1': '1_2', '4_2': '1_2',
+			'6_1': '1_3', '6_2': '1_3',
+			'7_1': '1_5',
+			'7_2': '2_1',
+			'8_1': '2_2'
+		}
+	}
+};
+function convertCatToPantsu(){
+	let c2p = cat2pantsu[argv.hentai ? 'ps' : 'pn'];
+	let c = c2p[argv.lang] && c2p[argv.lang][argv.cat] ? c2p[argv.lang][argv.cat] : c2p['default'][argv.cat];
+	if (c === undefined) {
+		errCat('NyaaPantsu');
+		return false;
+	}
+	return c;
+}
 // error cat 
 function errCat(service){
 	console.log('['+service+'] Error: unknown category!');
@@ -238,16 +280,10 @@ if(argv.h){
 
 // upload, nyaa with repost to TT
 async function doUpload(){
-	if(!argv['skip-at']){
-		await postToAnidex();
-	}
+	await postToAnidex();
 	if(!argv.debug){
-		if(!argv['skip-nt']){
-			await postToNyaa();
-		}
-		if(!argv['skip-pt']){
-			await postToPantsu();
-		}
+		await postToNyaa();
+		await postToPantsu();
 	}
 	console.log();
 }
@@ -258,7 +294,7 @@ doUpload();
 // anidex
 // https://anidex.info/settings#upload_api
 async function postToAnidex(){
-	if(!convertCatToAnidex()){
+	if(!convertCatToAnidex() || argv['skip-at']){
 		return;
 	}
 	let uploadOptions = {
@@ -292,7 +328,7 @@ async function postToAnidex(){
 	}
 	else if(postDx.res && postDx.res.body && postDx.res.body.match(/<title>(.*)<\/title>/)){
 		let err = postDx.res.body.match(/<title>(.*)<\/title>/)[1];
-		console.log('[TokyoTosho]','Error '+postDx.res.statusCode+': '+err);
+		console.log('[AniDex]','Error '+postDx.res.statusCode+': '+err);
 	}
 	else if(postDx.res){
 		console.log('[AniDex]',postDx.res.statusCode);
@@ -310,7 +346,7 @@ async function postToAnidex(){
 // NyaaV2 upload
 // https://github.com/nyaadevs/nyaa/blob/master/utils/api_uploader_v2.py
 async function postToNyaa(){
-	if(!convertCatToNyaa()){
+	if(!convertCatToNyaa() || argv['skip-nt']){
 		return;
 	}
 	let uploadOptions = {
@@ -339,30 +375,24 @@ async function postToNyaa(){
 		if(res.id){
 			console.log('[NyaaV2] Torrent successfully uploaded!');
 			console.log('[NyaaV2]',res.url);
-			if(!argv.hidden){
-				if(!argv['skip-tt']){
-					await postToTT(res.id);
-				}
-			}
+			await postToTT(res.id);
 		}
 		else if(res.errors && res.errors.torrent && res.errors.torrent.join(' / ').match(/That torrent already exists/)){
 			let errStr = res.errors.torrent.join('\r\n[NyaaV2] ');
 			let nyaa_tid = errStr.match(/ \(#(\d+)\)$/)[1];
 			console.log('[NyaaV2]',errStr);
-			if(!argv['skip-tt']){
-				await postToTT(nyaa_tid);
-			}
+			await postToTT(nyaa_tid);
 		}
 		else if(res.errors && res.errors.torrent){
 			console.log('[NyaaV2]',res.errors.torrent.join('\r\n[NyaaV2] '));
 		}
 		else{
-			console.log('[NyaaV2] Unknown error.');
+			console.log('[NyaaV2] Unknown error');
 		}
 	}
 	else if(postNt.res && postNt.res.body && postNt.res.body.match(/<title>(.*)<\/title>/)){
 		let err = postNt.res.body.match(/<title>(.*)<\/title>/)[1];
-		console.log('[TokyoTosho]','Error '+postNt.res.statusCode+': '+err);
+		console.log('[NyaaV2]','Error '+postNt.res.statusCode+': '+err);
 	}
 	else if(postNt.res){
 		console.log('[NyaaV2]',postNt.res.statusCode);
@@ -377,7 +407,7 @@ async function postToNyaa(){
 
 
 async function postToTT(nyaa_tid){
-	if(!convertCatToTT()){
+	if(!convertCatToTT() || argv.hidden || argv['skip-tt']){
 		return;
 	}
 	// nyaa_id to url
@@ -430,7 +460,57 @@ async function postToTT(nyaa_tid){
 // pantsu upload
 // https://nyaa.pantsu.cat/apidoc/#api-Torrents-UpdateTorrent
 async function postToPantsu(){
-	
+	if(!convertCatToPantsu() || argv['skip-pt']){
+		return;
+	}
+	let uploadOptions = {
+		url: (argv.hentai?psUrl:pnUrl),
+		headers: {
+			Authorization: argv.ptkey
+		},
+		formData: {
+			torrent: fs.createReadStream(argv.f),
+			// username: argv.ptkey,
+			// name: 'name',
+			category: convertCatToPantsu(),
+			website_link: argv.web,
+			description: bb2md(argv.d),
+			hidden:  argv.hidden.toString(),
+			remake: argv.reenc.toString()
+		}
+	}
+	console.log(uploadOptions);
+	let postPt = await doReq('post',uploadOptions);
+	if(statCodeCheck(postPt.res,200) || statCodeCheck(postPt.res,400)){
+		let res = JSON.parse(postPt.res.body);
+		if(res.id){
+			console.log('[NyaaPantsu] Torrent successfully uploaded!');
+			console.log('[NyaaPantsu]',res.url);
+		}
+		else if(res.errors && res.errors.join(' / ').match(/That torrent already exists/)){
+			let errStr = res.errors.torrent.join('\r\n[NyaaPantsu] ');
+			console.log('[NyaaPantsu]',errStr);
+		}
+		else if(res.errors){
+			console.log('[NyaaPantsu]',res.errors.join('\r\n[NyaaPantsu] '));
+		}
+		else{
+			console.log('[NyaaPantsu] Unknown error');
+		}
+	}
+	else if(postPt.res && postPt.res.body && postPt.res.body.match(/<title>(.*)<\/title>/)){
+		let err = postPt.res.body.match(/<title>(.*)<\/title>/)[1];
+		console.log('[NyaaPantsu]','Error '+postPt.res.statusCode+': '+err);
+	}
+	else if(postPt.res){
+		console.log('[NyaaPantsu]',postPt.res.statusCode);
+	}
+	else if(postPt.err){
+		console.log('[NyaaPantsu] Error code: ',postPt.err.code);
+	}
+	else{
+		console.log('[NyaaPantsu] Unknown error');
+	}
 }
 
 // check status code
