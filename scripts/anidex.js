@@ -56,10 +56,10 @@ let argv = yargs
 	.describe('reenc','Reencode boolean')
 	.boolean('reenc')
 	
-	.describe('hidden','Hidden boolean (TT will be skipped)')
+	.describe('hidden','Hidden boolean (TokyoTosho will be skipped)')
 	.boolean('hidden')
 	
-	.describe('d','Comment for your submission (bbcode partially)')
+	.describe('d','Comment for your submission (bbcode supported partially)')
 	.default('d','')
 	
 	.describe('web','Website')
@@ -67,6 +67,18 @@ let argv = yargs
 	
 	.describe('debug','Debug mode (only for Anidex)')
 	.boolean('debug')
+	
+	.describe('skip-at','Skip uploading to Anidex')
+	.boolean('skip-at')
+	
+	.describe('skip-nt','Skip uploading to NyaaV2 and TokyoTosho')
+	.boolean('skip-nt')
+	
+	.describe('skip-tt','Skip uploading to TokyoTosho')
+	.boolean('skip-tt')
+	
+	.describe('skip-pt','Skip uploading to NyaaPantsu')
+	.boolean('skip-pt')
 	
 	.describe('h','Show help')
 	.alias('h','help')
@@ -78,6 +90,7 @@ let argv = yargs
 const atUrl = 'https://anidex.info/api/';
 const nnUrl = 'https://nyaa.si/api/v2/upload';
 const nsUrl = 'https://sukebei.nyaa.si/api/v2/upload';
+const ndUrl = '/download/{ID}.torrent';
 const ttUrl = 'https://www.tokyotosho.info/new.php';
 const pnUrl = 'https://nyaa.pantsu.cat/api/upload';
 const psUrl = 'https://sukebei.pantsu.cat/api/upload';
@@ -115,6 +128,109 @@ argv.ttkey  = useCfg && cfgOpt.ttkey  ?  cfgOpt.ttkey.toString() : argv.ttkey;
 argv.ptkey  = useCfg && cfgOpt.ptkey  ?  cfgOpt.ptkey.toString() : argv.ptkey;
 argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web.toString()   : argv.web;
 
+// cat anidex
+const cat2anidex = {
+	'1_1':  2, '1_2': 1,  '1_3': 3, '1_4': 11,
+	'2_1':  8, '2_2': 7,
+	'3_1':  5, '3_2': 4,  '3_3': 5, '3_4': 16,
+	'4_1':  6, '4_2': 6,
+	'5_1': 10, '5_2': 9,
+	'6_1': 13, '6_2': 12,
+	'7_1': 14, '7_2': 14,
+	'8_1': 15,
+};
+function convertCatToAnidex(){
+	if (cat2anidex[argv.cat] === undefined) {
+		errCat('AniDex');
+		return false;
+	}
+	return cat2anidex[argv.cat];
+}
+// cat nyaa
+const cat2nyaa = {
+	nn: {
+		default: {
+			'1_1': '1_4', '1_2': '1_3', '1_3': '1_3',
+			'2_1': '3_3', '2_2': '3_2',
+			'3_1': '4_4', '3_2': '4_3', '3_3': '4_3', '3_4': '4_2',
+			'4_1': '3_3', '4_2': '3_2',
+			'5_1': '2_1', '5_2': '2_2',
+			'6_1': '6_1', '6_2': '6_2',
+			'7_1': '5_1', '7_2': '5_2'
+		},
+		1: {
+			'1_2': '1_2', '1_3': '1_2',
+			'2_2': '3_1',
+			'3_2': '4_1', '3_3': '4_1',
+			'4_2': '3_1'
+		}
+	},
+	ns: {
+		default: {
+			'1_1': '1_1', '1_2': '1_1', '1_3': '1_1', '1_4': '1_1',
+			'2_1': '1_4', '2_2': '1_4',
+			'3_1': '2_2', '3_2': '2_2', '3_3': '2_2', '3_4': '2_2',
+			'4_1': '1_2', '4_2': '1_2',
+			'6_1': '1_3', '6_2': '1_3',
+			'7_1': '1_5',
+			'7_2': '2_1',
+			'8_1': '2_2'
+		}
+	}
+};
+function convertCatToNyaa(){
+	let c2n = cat2nyaa[argv.hentai ? 'ns' : 'nn'];
+	let c = c2n[argv.lang] && c2n[argv.lang][argv.cat] ? c2n[argv.lang][argv.cat] : c2n['default'][argv.cat];
+	if (c === undefined) {
+		errCat('NyaaV2');
+		return false;
+	}
+	return c;
+}
+const cat2tt = {
+	tn: {
+		default: {
+			'1_1': 7, '1_2': 10, '1_3': 10, '1_4': 9,
+			'2_1': 3, '2_2': 3,
+			'3_1': 5, '3_2': 5, '3_3': 5, '3_4': 5,
+			'4_1': 5, '4_2': 5,
+			'5_1': 2, '5_2': 2,
+			'6_1': 5, '6_2': 5,
+			'7_1': 5, '7_2': 5,
+		},
+		1: {
+			'1_2': 1, '1_3': 1
+		}
+	},
+	th: {
+		default: {
+			'1_1': 12, '1_2': 12, '1_3': 12, '1_4': 12,
+			'2_1': 13, '2_2': 13,
+			'3_1': 4,  '3_2': 4,  '3_3': 4,  '3_4': 4,
+			'4_1': 4,  '4_2': 4,
+			'6_1': 14, '6_2': 14,
+			'7_1': 4,  '7_2': 4,
+			'8_1': 15
+		}
+	}
+}
+function convertCatToTT(){
+	if(argv.batch){
+		return 11;
+	}
+	let c2t = cat2tt[argv.hentai ? 'th' : 'tn'];
+	let c = c2t[argv.lang] && c2t[argv.lang][argv.cat] ? c2t[argv.lang][argv.cat] : c2t['default'][argv.cat];
+	if (c === undefined) {
+		errCat('TokyoTosho');
+		return false;
+	}
+	return c;
+}
+// error cat 
+function errCat(service){
+	console.log('['+service+'] Error: unknown category!');
+}
+
 // help
 if(argv.h){
 	console.log(yargs.showHelp());
@@ -122,10 +238,16 @@ if(argv.h){
 
 // upload, nyaa with repost to TT
 async function doUpload(){
-	await postToAnidex();
+	if(!argv['skip-at']){
+		await postToAnidex();
+	}
 	if(!argv.debug){
-		await postToNyaa();
-		await postToPantsu();
+		if(!argv['skip-nt']){
+			await postToNyaa();
+		}
+		if(!argv['skip-pt']){
+			await postToPantsu();
+		}
 	}
 	console.log();
 }
@@ -168,6 +290,10 @@ async function postToAnidex(){
 			console.log('[AniDex]',postDx.res.body);
 		}
 	}
+	else if(postDx.res && postDx.res.body && postDx.res.body.match(/<title>(.*)<\/title>/)){
+		let err = postDx.res.body.match(/<title>(.*)<\/title>/)[1];
+		console.log('[TokyoTosho]','Error '+postDx.res.statusCode+': '+err);
+	}
 	else if(postDx.res){
 		console.log('[AniDex]',postDx.res.statusCode);
 		return;
@@ -181,7 +307,7 @@ async function postToAnidex(){
 	}
 }
 
-// nyaaV2 upload
+// NyaaV2 upload
 // https://github.com/nyaadevs/nyaa/blob/master/utils/api_uploader_v2.py
 async function postToNyaa(){
 	if(!convertCatToNyaa()){
@@ -210,15 +336,22 @@ async function postToNyaa(){
 	let postNt = await doReq('post',uploadOptions);
 	if(statCodeCheck(postNt.res,200) || statCodeCheck(postNt.res,400)){
 		let res = JSON.parse(postNt.res.body);
-		if(res.url){
+		if(res.id){
 			console.log('[NyaaV2] Torrent successfully uploaded!');
 			console.log('[NyaaV2]',res.url);
 			if(!argv.hidden){
-				await postToTT(res.url);
+				if(!argv['skip-tt']){
+					await postToTT(res.id);
+				}
 			}
 		}
 		else if(res.errors && res.errors.torrent && res.errors.torrent.join(' / ').match(/That torrent already exists/)){
-			console.log('[NyaaV2]',res.errors.torrent.join('\r\n[NyaaV2] '));
+			let errStr = res.errors.torrent.join('\r\n[NyaaV2] ');
+			let nyaa_tid = errStr.match(/ \(#(\d+)\)$/)[1];
+			console.log('[NyaaV2]',errStr);
+			if(!argv['skip-tt']){
+				await postToTT(nyaa_tid);
+			}
 		}
 		else if(res.errors && res.errors.torrent){
 			console.log('[NyaaV2]',res.errors.torrent.join('\r\n[NyaaV2] '));
@@ -226,6 +359,10 @@ async function postToNyaa(){
 		else{
 			console.log('[NyaaV2] Unknown error.');
 		}
+	}
+	else if(postNt.res && postNt.res.body && postNt.res.body.match(/<title>(.*)<\/title>/)){
+		let err = postNt.res.body.match(/<title>(.*)<\/title>/)[1];
+		console.log('[TokyoTosho]','Error '+postNt.res.statusCode+': '+err);
 	}
 	else if(postNt.res){
 		console.log('[NyaaV2]',postNt.res.statusCode);
@@ -239,14 +376,55 @@ async function postToNyaa(){
 }
 
 
-async function postToTT(t_url){
+async function postToTT(nyaa_tid){
+	if(!convertCatToTT()){
+		return;
+	}
+	// nyaa_id to url
+	let nyaa_url = (argv.hentai?nsUrl:nnUrl).split('/')[2]+ndUrl.replace('{ID}',nyaa_tid);
 	// fix comment
 	let TTcom = argv.d.replace(/\n$/,'').trim();
 	do {
 		TTcom = TTcom.replace(/\n\n/g,'\n');
 	} while (TTcom.match(/\n\n/));
 	TTcom = TTcom.replace(/\n/g,' / ').replace(/\[(\w+)[^w]*?](.*?)\[\/\1]/g,'$2');
-	console.log('[TokyoTosho] In development!');
+	// req options
+	let options = {
+		url: ttUrl,
+		form: {
+			type: convertCatToTT(),
+			url: nyaa_url,
+			comment: TTcom,
+			website: argv.web,
+			apikey: argv.ttkey,
+			send: 'true'
+		}
+	}
+	let postTT = await doReq('post',options);
+	// answer
+	let ttBase = 'https://'+ttUrl.split('/')[2];
+	if( statCodeCheck(postTT.res,200) && postTT.res.body.match(/^OK,(\d+)$/)){
+		console.log('[TokyoTosho]',ttBase+'/details.php?id='+postTT.res.body.split(',')[1]);
+	}
+	else if(statCodeCheck(postTT.res,200) && postTT.res.body.match(/It already exists in the database/)){
+		console.log('[TokyoTosho]','Error: Torrent already exists:',ttBase+'/details.php?id='+postTT.res.body.match(/Entry (\d+)/)[1]);
+	}
+	else if(statCodeCheck(postTT.res,200) && postTT.res.body.match(/Could not download torrent/)){
+		console.log('[TokyoTosho]','Error:  Could not download torrent. Check the ID for typos and verify the NyaaV2 site is online.');
+	}
+	else if(postTT.res && postTT.res.body && postTT.res.body.match(/<title>(.*)<\/title>/)){
+		let err = postTT.res.body.match(/<title>(.*)<\/title>/)[1];
+		console.log('[TokyoTosho]','Error '+postTT.res.statusCode+': '+err);
+	}
+	else if(postNt.res){
+		console.log('[TokyoTosho]','Error '+postNt.res.statusCode);
+	}
+	else if(postNt.err){
+		console.log('[TokyoTosho] Error code: ',postNt.err.code);
+	}
+	else{
+		console.log('[TokyoTosho] Unknown error');
+	}
 }
 
 // pantsu upload
@@ -258,163 +436,4 @@ async function postToPantsu(){
 // check status code
 function statCodeCheck(res,code){
 	return res && res.statusCode == code ? true : false;
-}
-
-// cat selector
-function convertCatToAnidex(){
-	switch (argv.cat){
-		case '1_1':
-			return 2;
-			break;
-		case '1_2':
-			return 1;
-			break;
-		case '1_3':
-			return 3;
-			break;
-		case '1_4':
-			return 11;
-			break;
-		case '2_1':
-			return 8;
-			break;
-		case '2_2':
-			return 7;
-			break;
-		case '3_1':
-		case '3_3':
-			return 5;
-			break;
-		case '3_4':
-			return 16;
-			break;
-		case '4_1':
-		case '4_2':
-			return 6;
-			break;
-		case '5_1':
-			return 10;
-			break;
-		case '5_2':
-			return 9;
-			break;
-		case '6_1':
-			return 13;
-			break;
-		case '6_2':
-			return 12;
-			break;
-		case '7_1':
-		case '7_2':
-			return 14;
-			break;
-		case '8_1':
-			return 15;
-			break;
-		default:
-			errCat('AniDex');
-			return false;
-	}
-}
-function convertCatToNyaa(){
-	if(!argv.hentai){
-		switch (argv.cat){
-			case '1_1':
-				return '1_4';
-				break;
-			case '1_2':
-			case '1_3':
-				return argv.lang == 1 ? '1_2' : '1_3';
-				break;
-			case '2_1':
-				return '3_3';
-				break;
-			case '2_2':
-				return argv.lang == 1 ? '3_1' : '3_2';
-				break;
-			case '3_1':
-				return '4_4';
-				break;
-			case '3_2':
-				return argv.lang == 1 ? '4_1' : '4_3';
-				break;
-			case '3_3':
-				return argv.lang == 1 ? '4_1' : '4_3';
-				break;
-			case '3_4':
-				return '4_2';
-				break;
-			case '4_1':
-				return '3_3';
-				break;
-			case '4_2':
-				return argv.lang == 1 ? '3_1' : '3_2';
-				break;
-			case '5_1':
-				return '2_1';
-				break;
-			case '5_2':
-				return '2_2';
-				break;
-			case '6_1':
-				return '6_1';
-				break;
-			case '6_2':
-				return '6_2';
-				break;
-			case '7_1':
-				return '5_1';
-				break;
-			case '7_2':
-				return '5_2';
-				break;
-			default:
-				errCat('NyaaV2');
-				return false;
-		}
-	}
-	else{
-		switch (argv.cat){
-			case '1_1':
-			case '1_2':
-			case '1_3':
-			case '1_4':
-				return '1_1';
-				break;
-			case '2_1':
-			case '2_2':
-				return '1_4';
-				break;
-			case '3_1':
-			case '3_2':
-			case '3_3':
-			case '3_4':
-			case '8_1':
-				return '2_2';
-				break;
-			case '4_1':
-			case '4_2':
-				return '1_2';
-				break;
-			case '6_1':
-			case '6_2':
-				return '1_3';
-				break;
-			case '7_1':
-				return '1_5';
-				break;
-			case '7_2':
-				return '2_1';
-				break;
-			case '5_1':
-			case '5_2':
-			default:
-				errCat('NyaaV2');
-				return false;
-		}
-	}
-}
-// error cat 
-function errCat(service){
-	console.log('['+service+'] Error: unknown category!');
 }
