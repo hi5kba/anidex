@@ -128,6 +128,17 @@ argv.ttkey  = useCfg && cfgOpt.ttkey  ?  cfgOpt.ttkey.toString() : argv.ttkey;
 argv.ptkey  = useCfg && cfgOpt.ptkey  ?  cfgOpt.ptkey.toString() : argv.ptkey;
 argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web.toString()   : argv.web;
 
+// check file
+if(!fs.existsSync(argv.f)){
+	console.log('[ERROR] Seleted file not found!');
+	argv.h = true;
+}
+
+// help
+if(argv.h){
+	console.log(yargs.showHelp());
+}
+
 // cat anidex
 const cat2anidex = {
 	'1_1':  2, '1_2': 1,  '1_3': 3, '1_4': 11,
@@ -273,11 +284,6 @@ function errCat(service){
 	console.log('['+service+'] Error: unknown category!');
 }
 
-// help
-if(argv.h){
-	console.log(yargs.showHelp());
-}
-
 // upload, nyaa with repost to TT
 async function doUpload(){
 	await postToAnidex();
@@ -286,6 +292,7 @@ async function doUpload(){
 		await postToPantsu();
 	}
 	console.log();
+	process.exit();
 }
 
 // start
@@ -332,11 +339,9 @@ async function postToAnidex(){
 	}
 	else if(postDx.res){
 		console.log('[AniDex]',postDx.res.statusCode);
-		return;
 	}
 	else if(postDx.err){
 		console.log('[AniDex] Error code: ',postDx.err.code);
-		return;
 	}
 	else{
 		console.log('[AniDex] Unknown error');
@@ -377,7 +382,7 @@ async function postToNyaa(){
 			console.log('[NyaaV2]',res.url);
 			await postToTT(res.id);
 		}
-		else if(res.errors && res.errors.torrent && res.errors.torrent.join(' / ').match(/That torrent already exists/)){
+		else if(res.errors && res.errors.torrent && res.errors.torrent.join(' / ').match(/This torrent already exists/)){
 			let errStr = res.errors.torrent.join('\r\n[NyaaV2] ');
 			let nyaa_tid = errStr.match(/ \(#(\d+)\)$/)[1];
 			console.log('[NyaaV2]',errStr);
@@ -411,7 +416,7 @@ async function postToTT(nyaa_tid){
 		return;
 	}
 	// nyaa_id to url
-	let nyaa_url = (argv.hentai?nsUrl:nnUrl).split('/')[2]+ndUrl.replace('{ID}',nyaa_tid);
+	let nyaa_url = 'https://'+(argv.hentai?nsUrl:nnUrl).split('/')[2]+ndUrl.replace('{ID}',nyaa_tid);
 	// fix comment
 	let TTcom = argv.d.replace(/\n$/,'').trim();
 	do {
@@ -442,15 +447,18 @@ async function postToTT(nyaa_tid){
 	else if(statCodeCheck(postTT.res,200) && postTT.res.body.match(/Could not download torrent/)){
 		console.log('[TokyoTosho]','Error:  Could not download torrent. Check the ID for typos and verify the NyaaV2 site is online.');
 	}
+	else if(statCodeCheck(postTT.res,200) && postTT.res.body.match(/Could not decode torrent, hotlinking restrictions may be in effect/)){
+		console.log('[TokyoTosho]','Error: Could not decode torrent, hotlinking restrictions may be in effect.');
+	}
 	else if(postTT.res && postTT.res.body && postTT.res.body.match(/<title>(.*)<\/title>/)){
 		let err = postTT.res.body.match(/<title>(.*)<\/title>/)[1];
 		console.log('[TokyoTosho]','Error '+postTT.res.statusCode+': '+err);
 	}
-	else if(postNt.res){
-		console.log('[TokyoTosho]','Error '+postNt.res.statusCode);
+	else if(postTT.res){
+		console.log('[TokyoTosho]','Error '+postTT.res.statusCode);
 	}
-	else if(postNt.err){
-		console.log('[TokyoTosho] Error code: ',postNt.err.code);
+	else if(postTT.err){
+		console.log('[TokyoTosho] Error code: ',postTT.err.code);
 	}
 	else{
 		console.log('[TokyoTosho] Unknown error');
