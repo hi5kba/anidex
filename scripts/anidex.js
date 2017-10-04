@@ -29,13 +29,9 @@ let argv = yargs
 	.describe('cfg','Override program options with configuration file')
 	
 	.describe('atkey','Api key for Anidex')
-	.default('atkey','')
 	.describe('ntkey','Comma-separated login and password for NyaaV2')
-	.default('ntkey','')
 	.describe('ttkey','Api key for TokyoTosho')
-	.default('ttkey','')
 	.describe('ptkey','Comma-separated username and api key for NyaaPantsu')
-	.default('ptkey','')
 	
 	.describe('cat','Category id')
 	.choices('cat', appCats)
@@ -110,23 +106,29 @@ if(useCfg){
 }
 
 // check params
-argv.cat    = useCfg && cfgOpt.cat   && appCats.indexOf(cfgOpt.cat)  > -1 ? cfgOpt.cat  : argv.cat;
-argv.lang   = useCfg && cfgOpt.lang  && appLang.indexOf(cfgOpt.lang) > -1 ? cfgOpt.lang : argv.lang;
-argv.group  = useCfg && cfgOpt.group && typeof cfgOpt.group === "number" && /^[0-9]+$/.test(cfgOpt.group) ? parseInt(cfgOpt.group): argv.group;
+argv.cat    = useCfg && cfgOpt.cat   && typeof cfgOpt.cat == 'string'   && appCats.indexOf(cfgOpt.cat)   > -1 ? cfgOpt.cat  : argv.cat;
+argv.lang   = useCfg && cfgOpt.lang  && typeof cfgOpt.lang == 'number'  && appLang.indexOf(cfgOpt.lang)  > -1 ? cfgOpt.lang : argv.lang;
+argv.group  = useCfg && cfgOpt.group && typeof cfgOpt.group == 'number' && /^[0-9]+$/.test(cfgOpt.group) ? parseInt(cfgOpt.group): argv.group;
 
-argv.batch  = useCfg && cfgOpt.batch  && cfgOpt.batch  == true ? true : argv.batch;
-argv.hentai = useCfg && cfgOpt.hentai && cfgOpt.hentai == true ? true : argv.hentai;
-argv.reenc  = useCfg && cfgOpt.reenc  && cfgOpt.reenc  == true ? true : argv.reenc;
-argv.hidden = useCfg && cfgOpt.hidden && cfgOpt.hidden == true ? true : argv.hidden;
+argv.batch  = useCfg && cfgOpt.batch  && typeof cfgOpt.batch  == 'boolean' && cfgOpt.batch  == true ? true : argv.batch;
+argv.hentai = useCfg && cfgOpt.hentai && typeof cfgOpt.hentai == 'boolean' && cfgOpt.hentai == true ? true : argv.hentai;
+argv.reenc  = useCfg && cfgOpt.reenc  && typeof cfgOpt.reenc  == 'boolean' && cfgOpt.reenc  == true ? true : argv.reenc;
+argv.hidden = useCfg && cfgOpt.hidden && typeof cfgOpt.hidden == 'boolean' && cfgOpt.hidden == true ? true : argv.hidden;
 
-argv.d      = useCfg && cfgOpt.comment ? cfgOpt.comment.toString()+argv.d : argv.d;
+argv.d      = argv.d && typeof argv.d == 'string' ? argv.d : '';
+argv.d      = useCfg && cfgOpt.comment && cfgOpt.comment == 'string' ? cfgOpt.comment.toString()+argv.d : argv.d;
 argv.d      = argv.d.replace(/\\n/g,'\n');
 
-argv.atkey  = useCfg && cfgOpt.atkey  ?  cfgOpt.atkey.toString() : argv.atkey;
-argv.ntkey  = useCfg && cfgOpt.ntkey  && cfgOpt.ntkey.indexOf(',') > -1 ? cfgOpt.ntkey.toString().split(',') : argv.ntkey;
-argv.ttkey  = useCfg && cfgOpt.ttkey  ?  cfgOpt.ttkey.toString() : argv.ttkey;
-argv.ptkey  = useCfg && cfgOpt.ptkey  && cfgOpt.ptkey.indexOf(',') > -1 ? cfgOpt.ptkey.toString().split(',') : argv.ptkey;
-argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web.toString()   : argv.web;
+argv.atkey  =           argv.atkey    && typeof argv.atkey   == 'string' ? argv.atkey : '';
+argv.atkey  = useCfg && cfgOpt.atkey  && typeof cfgOpt.atkey == 'string' ?  cfgOpt.atkey : argv.atkey;
+argv.ntkey  =           argv.ntkey    && typeof argv.ntkey   == 'string' && argv.ntkey.indexOf(',')   > -1 ? argv.ntkey.split(',')   : ['',''];
+argv.ntkey  = useCfg && cfgOpt.ntkey  && typeof cfgOpt.ntkey == 'string' && cfgOpt.ntkey.indexOf(',') > -1 ? cfgOpt.ntkey.split(',') : argv.ntkey;
+argv.ttkey  =           argv.ttkey    && typeof argv.ttkey   == 'string' ?  argv.ttkey   : '';
+argv.ttkey  = useCfg && cfgOpt.ttkey  && typeof cfgOpt.ttkey == 'string' ?  cfgOpt.ttkey : argv.ttkey;
+argv.ptkey  =           argv.ptkey    && typeof argv.ptkey   == 'string' && argv.ptkey.indexOf(',')   > -1 ? argv.ptkey.split(',')   : ['',''];
+argv.ptkey  = useCfg && cfgOpt.ptkey  && typeof cfgOpt.ptkey == 'string' && cfgOpt.ptkey.indexOf(',') > -1 ? cfgOpt.ptkey.split(',') : argv.ptkey;
+
+argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web   : argv.web;
 
 // check file
 if(!fs.existsSync(argv.f)){
@@ -301,7 +303,7 @@ doUpload();
 // anidex
 // https://anidex.info/settings#upload_api
 async function postToAnidex(){
-	if(!convertCatToAnidex() || argv['skip-at']){
+	if(!convertCatToAnidex() || argv['skip-at'] || argv.atkey == ''){
 		return;
 	}
 	let uploadOptions = {
@@ -351,7 +353,7 @@ async function postToAnidex(){
 // NyaaV2 upload
 // https://github.com/nyaadevs/nyaa/blob/master/utils/api_uploader_v2.py
 async function postToNyaa(){
-	if(!convertCatToNyaa() || argv['skip-nt']){
+	if(!convertCatToNyaa() || argv['skip-nt'] || argv.ntkey[0] == '' || argv.ntkey[1] == ''){
 		return;
 	}
 	let uploadOptions = {
@@ -412,7 +414,7 @@ async function postToNyaa(){
 
 
 async function postToTT(nyaa_tid){
-	if(!convertCatToTT() || argv.hidden || argv['skip-tt']){
+	if(!convertCatToTT() || argv.hidden || argv['skip-tt'] || argv.ttkey == ''){
 		return;
 	}
 	// nyaa_id to url
@@ -468,17 +470,17 @@ async function postToTT(nyaa_tid){
 // pantsu upload
 // https://nyaa.pantsu.cat/apidoc/#api-Torrents-UpdateTorrent
 async function postToPantsu(){
-	if(!convertCatToPantsu() || argv['skip-pt']){
+	if(!convertCatToPantsu() || argv['skip-pt'] || argv.ptkey[0] == '' || argv.ptkey[1] == ''){
 		return;
 	}
 	let uploadOptions = {
 		url: (argv.hentai?psUrl:pnUrl),
 		headers: {
-			Authorization: argv.ptkey.split(',')[1]
+			Authorization: argv.ptkey[1]
 		},
 		formData: {
 			torrent: fs.createReadStream(argv.f),
-			username: argv.ptkey.split(',')[0],
+			username: argv.ptkey[0],
 			// name: 'name',
 			category: convertCatToPantsu(),
 			website_link: argv.web,
