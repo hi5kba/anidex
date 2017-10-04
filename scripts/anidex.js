@@ -26,7 +26,7 @@ let argv = yargs
 	
 	.describe('f','Torrent file')
 	
-	.describe('cfg','Override default config/program options')
+	.describe('cfg','Override program options with configuration file')
 	
 	.describe('atkey','Api key for Anidex')
 	.default('atkey','')
@@ -34,7 +34,7 @@ let argv = yargs
 	.default('ntkey','')
 	.describe('ttkey','Api key for TokyoTosho')
 	.default('ttkey','')
-	.describe('ptkey','Api key for NyaaPantsu')
+	.describe('ptkey','Comma-separated username and api key for NyaaPantsu')
 	.default('ptkey','')
 	
 	.describe('cat','Category id')
@@ -125,7 +125,7 @@ argv.d      = argv.d.replace(/\\n/g,'\n');
 argv.atkey  = useCfg && cfgOpt.atkey  ?  cfgOpt.atkey.toString() : argv.atkey;
 argv.ntkey  = useCfg && cfgOpt.ntkey  && cfgOpt.ntkey.indexOf(',') > -1 ? cfgOpt.ntkey.toString().split(',') : argv.ntkey;
 argv.ttkey  = useCfg && cfgOpt.ttkey  ?  cfgOpt.ttkey.toString() : argv.ttkey;
-argv.ptkey  = useCfg && cfgOpt.ptkey  ?  cfgOpt.ptkey.toString() : argv.ptkey;
+argv.ptkey  = useCfg && cfgOpt.ptkey  && cfgOpt.ptkey.indexOf(',') > -1 ? cfgOpt.ptkey.toString().split(',') : argv.ptkey;
 argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web.toString()   : argv.web;
 
 // check file
@@ -474,11 +474,11 @@ async function postToPantsu(){
 	let uploadOptions = {
 		url: (argv.hentai?psUrl:pnUrl),
 		headers: {
-			Authorization: argv.ptkey
+			Authorization: argv.ptkey.split(',')[1]
 		},
 		formData: {
 			torrent: fs.createReadStream(argv.f),
-			// username: argv.ptkey,
+			username: argv.ptkey.split(',')[0],
 			// name: 'name',
 			category: convertCatToPantsu(),
 			website_link: argv.web,

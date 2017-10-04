@@ -1,8 +1,8 @@
 ﻿{
 	"atkey": "1234-aaaaa",
-	"ntkey": "admin,aaaaa",
+	"ntkey": "user,aaaaa",
 	"ttkey": "1234-aaaaa",
-	"pantsukey": "aaaaa",
+	"ptkey": "user,aaaaa",
 	"web": "https://nyaa.si",
 	"cat": "1_2",
 	"lang": 1,
