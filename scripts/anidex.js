@@ -56,10 +56,8 @@ let argv = yargs
 	.boolean('hidden')
 	
 	.describe('d','Comment for your submission (bbcode supported partially)')
-	.default('d','')
 	
 	.describe('web','Website')
-	.default('web','')
 	
 	.describe('debug','Debug mode (only for Anidex)')
 	.boolean('debug')
@@ -115,8 +113,8 @@ argv.hentai = useCfg && cfgOpt.hentai && typeof cfgOpt.hentai == 'boolean' && cf
 argv.reenc  = useCfg && cfgOpt.reenc  && typeof cfgOpt.reenc  == 'boolean' && cfgOpt.reenc  == true ? true : argv.reenc;
 argv.hidden = useCfg && cfgOpt.hidden && typeof cfgOpt.hidden == 'boolean' && cfgOpt.hidden == true ? true : argv.hidden;
 
-argv.d      = argv.d && typeof argv.d == 'string' ? argv.d : '';
-argv.d      = useCfg && cfgOpt.comment && cfgOpt.comment == 'string' ? cfgOpt.comment.toString()+argv.d : argv.d;
+argv.d      =           argv.d         && typeof argv.d         == 'string' ? argv.d : '';
+argv.d      = useCfg && cfgOpt.comment && typeof cfgOpt.comment == 'string' ? cfgOpt.comment+argv.d : argv.d;
 argv.d      = argv.d.replace(/\\n/g,'\n');
 
 argv.atkey  =           argv.atkey    && typeof argv.atkey   == 'string' ? argv.atkey : '';
@@ -128,7 +126,8 @@ argv.ttkey  = useCfg && cfgOpt.ttkey  && typeof cfgOpt.ttkey == 'string' ?  cfgO
 argv.ptkey  =           argv.ptkey    && typeof argv.ptkey   == 'string' && argv.ptkey.indexOf(',')   > -1 ? argv.ptkey.split(',')   : ['',''];
 argv.ptkey  = useCfg && cfgOpt.ptkey  && typeof cfgOpt.ptkey == 'string' && cfgOpt.ptkey.indexOf(',') > -1 ? cfgOpt.ptkey.split(',') : argv.ptkey;
 
-argv.web    = useCfg && cfgOpt.web    ?  cfgOpt.web   : argv.web;
+argv.web    =           argv.web   && typeof argv.web   == 'string' ? argv.web   : '';
+argv.web    = useCfg && cfgOpt.web && typeof cfgOpt.web == 'string' ? cfgOpt.web : argv.web;
 
 // check file
 if(!fs.existsSync(argv.f)){
